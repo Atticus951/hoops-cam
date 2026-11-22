@@ -27,6 +27,7 @@ button:focus-visible{outline:4px solid var(--led);outline-offset:2px}
 .cam{grid-area:cam;position:relative;background:#000;border-radius:18px;overflow:hidden;touch-action:none}
 .cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%}
 .cam video{object-fit:contain}
+.cam.mirror video{transform:scaleX(-1)}
 .hint{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(6,14,40,.82);border-radius:12px;padding:8px 12px;font-weight:600;text-align:center;font-size:15px;pointer-events:none}
 .board{grid-area:board;background:var(--board);border-radius:18px;padding:8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;text-align:center;border:5px solid #26335c}
 .board small{display:block;color:#93a0cc;font-size:13px;font-weight:600}
@@ -69,6 +70,7 @@ ol{padding-left:20px;margin:6px 0}
   <div class="top">
     <h1>Hoops Cam</h1>
     <button class="go" id="start">Turn on camera</button>
+    <button class="ghost" id="flip" hidden>Use back camera</button>
     <button class="ghost" id="game" disabled>60-second game</button>
     <button class="ghost" id="reset">Reset</button>
     <button class="ghost" id="setBtn">Settings</button>
@@ -105,7 +107,7 @@ ol{padding-left:20px;margin:6px 0}
   <p style="margin:8px 0 0;color:var(--soft)">A bar passing the black line means the camera saw movement there. A basket counts when Rim fires and then Net fires right after.</p>
   <strong style="display:block;margin-top:12px">Setup tips</strong>
   <ol>
-    <li>Prop the tablet 6 to 10 feet from the hoop, back camera facing it. Upright or sideways both work.</li>
+    <li>Prop the tablet 6 to 10 feet from the hoop with the camera you're using pointed at it. Upright or sideways both work. Use the front camera so he can see the score, or the back camera if the front one is blurry.</li>
     <li>Drag a box from just above the rim to the bottom of the net. Yellow watches the rim, orange watches the net.</li>
     <li>Keep people and pets out of the box between shots. A plain wall behind the hoop helps.</li>
     <li>If it misses baskets, slide sensitivity up. If it counts misses, slide it down.</li>
@@ -138,15 +140,27 @@ async function wake(){try{if(navigator.wakeLock)lock=await navigator.wakeLock.re
 document.addEventListener('visibilitychange',()=>{if(running&&document.visibilityState==='visible')wake()});
 
 /* camera */
+/* front camera ('user') lets him see the screen while shooting; it is shown mirrored like a selfie */
+let facing=st.facing||'user';
+function camLabel(){$('#flip').textContent=facing==='user'?'Use back camera':'Use front camera'}
+async function openCam(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){showErr('This browser can\'t use the camera here. Open the https:// link in Safari or Chrome.');return false}
+  if(v.srcObject){v.srcObject.getTracks().forEach(t=>t.stop());v.srcObject=null}
+  try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:640},height:{ideal:480}},audio:false});
+    v.srcObject=s;await v.play();
+    const set=s.getVideoTracks()[0].getSettings?s.getVideoTracks()[0].getSettings():{};
+    if(set.facingMode)facing=set.facingMode==='user'?'user':'environment';
+    cam.classList.toggle('mirror',facing==='user');orient='';prev=null;camLabel();return true}
+  catch(e){showErr('The camera was blocked. Allow camera access for this site in the tablet\'s settings, then try again.');return false}}
 $('#start').addEventListener('click',async()=>{actx();$('#err').hidden=true;
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){showErr('This browser can\'t use the camera here. Open the https:// link in Safari or Chrome.');return}
-  try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:640},height:{ideal:480}},audio:false});
-    v.srcObject=s;await v.play();running=true;wake();$('#start').textContent='Camera on';$('#start').disabled=true;$('#game').disabled=false;
-    hint();requestAnimationFrame(loop)}
-  catch(e){showErr('The camera was blocked. Allow camera access for this site in the tablet\'s settings, then try again.')}});
+  if(!(await openCam()))return;
+  running=true;wake();$('#start').hidden=true;$('#flip').hidden=false;$('#game').disabled=false;
+  hint();requestAnimationFrame(loop)});
+$('#flip').addEventListener('click',async()=>{$('#err').hidden=true;facing=facing==='user'?'environment':'user';st.facing=facing;save();await openCam()});
 function showErr(t){const e=$('#err');e.textContent=t;e.hidden=false}
 
 /* upright and sideways each remember their own box */
+function bkey(){return 'box_'+facing+'_'+orient}
 function curOrient(){return v.videoWidth>=v.videoHeight?'wide':'tall'}
 function hint(){$('#hint').textContent=box?'Ready! Shoot away. Drag again to move the box.':'Drag a box from just above the rim to the bottom of the net.';$('#hint').hidden=false}
 
@@ -160,7 +174,7 @@ function pt(e){const r=cam.getBoundingClientRect(),q=vrect();
 cam.addEventListener('pointerdown',e=>{if(!running)return;drag=pt(e);cam.setPointerCapture(e.pointerId);$('#hint').hidden=true});
 cam.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e);box={x:Math.min(drag.x,p.x),y:Math.min(drag.y,p.y),w:Math.abs(p.x-drag.x),h:Math.abs(p.y-drag.y)}});
 cam.addEventListener('pointerup',()=>{if(!drag)return;drag=null;
-  if(box&&box.w>.03&&box.h>.04){st['box_'+orient]=box;save();prev=null}else box=st['box_'+orient]||null;hint();setTimeout(()=>{if(box)$('#hint').hidden=true},2500)});
+  if(box&&box.w>.03&&box.h>.04){st[bkey()]=box;save();prev=null}else box=st[bkey()]||null;hint();setTimeout(()=>{if(box)$('#hint').hidden=true},2500)});
 
 function zones(){if(!box)return null;
   return{A:{x:box.x,y:box.y,w:box.w,h:box.h*.32},B:{x:box.x+box.w*.18,y:box.y+box.h*.45,w:box.w*.64,h:box.h*.55}}}
@@ -171,7 +185,7 @@ function motion(diff,z){const x0=Math.floor(z.x*W),y0=Math.floor(z.y*H),x1=Math.
 function loop(){if(!running)return;requestAnimationFrame(loop);
   if(!v.videoWidth)return;
   const o=curOrient();
-  if(o!==orient){orient=o;box=st['box_'+o]||null;prev=null;hint()}
+  if(o!==orient){orient=o;box=st[bkey()]||null;prev=null;hint()}
   const nh=Math.round(160*v.videoHeight/v.videoWidth);
   if(W!==160||H!==nh){W=160;H=nh;prev=null}
   if(work.width!==W||work.height!==H){work.width=W;work.height=H}
@@ -184,7 +198,8 @@ function loop(){if(!running)return;requestAnimationFrame(loop);
   prev=g;
   draw();
   const z=zones();if(!z)return;
-  const a=motion(diff,z.A),b=motion(diff,z.B),now=performance.now();
+  const fx=q=>facing==='user'?{x:1-q.x-q.w,y:q.y,w:q.w,h:q.h}:q;
+  const a=motion(diff,fx(z.A)),b=motion(diff,fx(z.B)),now=performance.now();
   $('#mA').style.width=Math.min(100,a/thrA*50)+'%';$('#mB').style.width=Math.min(100,b/thrB*50)+'%';
   if(drag||now<cool)return;
   if(a>thrA)lastA=now;
