@@ -8,55 +8,78 @@
 <style>
 :root{--bg:#1f4fd8;--panel:#fff;--ink:#10183a;--soft:#5b6690;--ball:#ff7a1a;--led:#ffd23f;--board:#0b1430;--line:#e3e8f7}
 *{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:#fff;font:17px/1.5 Rubik,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
-.wrap{max-width:900px;margin:0 auto;padding:16px max(4vw,14px) 40px}
-h1,.led,.big{font-family:Bungee,Impact,sans-serif;font-weight:400}
-h1{font-size:clamp(30px,6vw,46px);line-height:1.05;margin:0 0 6px}
-button{font:inherit;font-weight:800;border:0;border-radius:16px;min-height:48px;padding:10px 18px;cursor:pointer;background:#fff;color:var(--bg)}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:#fff;font:16px/1.4 Rubik,system-ui,sans-serif;-webkit-tap-highlight-color:transparent;overflow:hidden}
+h1,.led{font-family:Bungee,Impact,sans-serif;font-weight:400}
+h1{font-size:22px;line-height:1;margin:0}
+button{font:inherit;font-weight:800;border:0;border-radius:14px;min-height:44px;padding:8px 14px;cursor:pointer;background:#fff;color:var(--bg)}
 button.go{background:var(--ball);color:#fff}
 button.ghost{background:rgba(255,255,255,.16);color:#fff}
-button:focus-visible{outline:4px solid var(--led);outline-offset:3px}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.cam{position:relative;background:#000;border-radius:22px;overflow:hidden;aspect-ratio:4/3;margin:14px 0;touch-action:none}
-.cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.hint{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(6,14,40,.8);border-radius:14px;padding:10px 14px;font-weight:600;text-align:center}
-.board{background:var(--board);border-radius:22px;padding:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;text-align:center;border:6px solid #26335c}
-.board small{display:block;color:#93a0cc;font-size:14px;font-weight:600}
-.led{color:var(--led);font-size:clamp(38px,9vw,70px);line-height:1;text-shadow:0 0 14px rgba(255,210,63,.55)}
+button:disabled{opacity:.5}
+button:focus-visible{outline:4px solid var(--led);outline-offset:2px}
+
+/* whole app always fits the screen */
+.app{height:100vh;height:100dvh;display:grid;gap:10px;padding:10px;
+  grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;
+  grid-template-areas:"top" "cam" "board" "fix"}
+.top{grid-area:top;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.top h1{margin-right:auto}
+.cam{grid-area:cam;position:relative;background:#000;border-radius:18px;overflow:hidden;touch-action:none}
+.cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%}
+.cam video{object-fit:contain}
+.hint{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(6,14,40,.82);border-radius:12px;padding:8px 12px;font-weight:600;text-align:center;font-size:15px;pointer-events:none}
+.board{grid-area:board;background:var(--board);border-radius:18px;padding:8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;text-align:center;border:5px solid #26335c}
+.board small{display:block;color:#93a0cc;font-size:13px;font-weight:600}
+.led{color:var(--led);font-size:clamp(30px,6vh,60px);line-height:1;text-shadow:0 0 12px rgba(255,210,63,.55)}
 .led.red{color:#ff5a4a}
-.msg{min-height:34px;text-align:center;font-weight:800;font-size:22px;margin:10px 0}
-.panel{background:var(--panel);color:var(--ink);border-radius:20px;padding:16px 18px;margin-top:14px}
-.panel label{display:block;font-weight:700;margin-top:8px}
-input[type=range]{width:100%;height:36px;accent-color:var(--ball)}
-.meters{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 10px;align-items:center;margin-top:10px;font-size:15px}
-.bar{height:14px;background:var(--line);border-radius:99px;overflow:hidden;position:relative}
-.bar i{display:block;height:100%;width:0;background:var(--ball)}
-.bar b{position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--ink)}
-.fix{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.msg{grid-column:1/-1;min-height:22px;font-weight:800;font-size:18px;color:#fff}
+.fix{grid-area:fix;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,210,63,.55),transparent 70%);opacity:0;pointer-events:none;transition:opacity .4s}
 .flash.on{opacity:1;transition:none}
-.err{background:#ff5a4a;color:#fff;border-radius:16px;padding:14px;font-weight:700;margin-top:12px}
+.err{position:absolute;left:10px;right:10px;top:10px;background:#ff5a4a;color:#fff;border-radius:12px;padding:10px 12px;font-weight:700}
+
+/* sideways tablet: camera left, scoreboard and buttons right */
+@media (orientation:landscape) and (min-width:640px){
+  .app{grid-template-columns:minmax(0,1fr) clamp(230px,28vw,320px);grid-template-rows:auto minmax(0,1fr) auto;
+    grid-template-areas:"cam top" "cam board" "cam fix"}
+  .top{flex-direction:column;align-items:stretch}
+  .top h1{margin:0 0 4px}
+  .board{grid-template-columns:minmax(0,1fr);align-content:center}
+  .led{font-size:clamp(34px,9vh,72px)}
+  .fix{grid-template-columns:minmax(0,1fr)}
+}
+
+/* settings sheet slides up over the bottom, camera stays visible */
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:55vh;overflow:auto;background:var(--panel);color:var(--ink);border-radius:20px 20px 0 0;padding:16px 18px 22px;box-shadow:0 -10px 30px rgba(0,0,0,.35);z-index:5}
+.sheet[hidden]{display:none}
+.sheet .head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sheet button.close{background:var(--line);color:var(--ink)}
+.sheet label{display:block;font-weight:700;margin-top:10px}
+input[type=range]{width:100%;height:36px;accent-color:var(--ball)}
+.meters{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 10px;align-items:center;font-size:15px}
+.bar{height:14px;background:var(--line);border-radius:99px;overflow:hidden;position:relative}
+.bar i{display:block;height:100%;width:0;background:var(--ball)}
+.bar b{position:absolute;left:50%;top:-3px;bottom:-3px;width:3px;background:var(--ink)}
 ol{padding-left:20px;margin:6px 0}
 @media (prefers-reduced-motion:reduce){.flash{transition:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Hoops Cam</h1>
-  <p style="margin:0">The camera watches the hoop and counts every basket by itself.</p>
-
-  <div class="row" style="margin-top:12px">
+<div class="app">
+  <div class="top">
+    <h1>Hoops Cam</h1>
     <button class="go" id="start">Turn on camera</button>
-    <button class="ghost" id="game" disabled>Start 60-second game</button>
-    <button class="ghost" id="reset">Reset score</button>
+    <button class="ghost" id="game" disabled>60-second game</button>
+    <button class="ghost" id="reset">Reset</button>
+    <button class="ghost" id="setBtn">Settings</button>
   </div>
-  <div id="err" class="err" hidden></div>
 
   <div class="cam" id="cam">
     <video id="v" playsinline muted></video>
     <canvas id="ov"></canvas>
     <div class="flash" id="flash"></div>
-    <div class="hint" id="hint">Turn on the camera, then drag a box around the rim and net.</div>
+    <div class="hint" id="hint">Tap Turn on camera, then drag a box around the rim and net.</div>
+    <div id="err" class="err" hidden></div>
   </div>
 
   <div class="board">
@@ -64,39 +87,40 @@ ol{padding-left:20px;margin:6px 0}
     <div><small>Time</small><div class="led" id="time">--</div></div>
     <div><small>Best</small><div class="led" id="best">0</div></div>
   </div>
-  <div class="msg" id="msg">&nbsp;</div>
 
   <div class="fix">
-    <button id="plus">It missed one: +1</button>
-    <button id="minus">Didn't go in: &#8722;1</button>
+    <button id="plus">Missed one: +1</button>
+    <button id="minus">Not a basket: &#8722;1</button>
   </div>
+</div>
 
-  <div class="panel">
-    <strong>Setup tips</strong>
-    <ol>
-      <li>Put the tablet on a shelf or stand 6 to 10 feet from the hoop, using the back camera, so the whole rim and net are in view.</li>
-      <li>Drag a box from just above the rim down to the bottom of the net. The yellow top part watches the rim, the orange part watches the net.</li>
-      <li>Keep people and pets out of the box when no one's shooting. A plain wall behind the hoop works best.</li>
-      <li>Take a few shots. If it misses baskets, slide sensitivity up. If it counts misses, slide it down.</li>
-    </ol>
-    <label for="sens">Sensitivity</label>
-    <input type="range" id="sens" min="1" max="10" value="5">
-    <div class="meters">
-      <span>Rim</span><div class="bar"><i id="mA"></i><b id="tA"></b></div>
-      <span>Net</span><div class="bar"><i id="mB"></i><b id="tB"></b></div>
-    </div>
+<div class="sheet" id="sheet" hidden>
+  <div class="head"><strong>Settings</strong><button class="close" id="closeSet">Done</button></div>
+  <label for="sens">Sensitivity</label>
+  <input type="range" id="sens" min="1" max="10" value="5">
+  <div class="meters">
+    <span>Rim</span><div class="bar"><i id="mA"></i><b></b></div>
+    <span>Net</span><div class="bar"><i id="mB"></i><b></b></div>
   </div>
+  <p style="margin:8px 0 0;color:var(--soft)">A bar passing the black line means the camera saw movement there. A basket counts when Rim fires and then Net fires right after.</p>
+  <strong style="display:block;margin-top:12px">Setup tips</strong>
+  <ol>
+    <li>Prop the tablet 6 to 10 feet from the hoop, back camera facing it. Upright or sideways both work.</li>
+    <li>Drag a box from just above the rim to the bottom of the net. Yellow watches the rim, orange watches the net.</li>
+    <li>Keep people and pets out of the box between shots. A plain wall behind the hoop helps.</li>
+    <li>If it misses baskets, slide sensitivity up. If it counts misses, slide it down.</li>
+  </ol>
 </div>
 
 <script>
 {
 const $=s=>document.querySelector(s);
 const v=$('#v'),ov=$('#ov'),cam=$('#cam'),octx=ov.getContext('2d');
-const W=160,H=120,work=document.createElement('canvas');work.width=W;work.height=H;
+let W=160,H=120;const work=document.createElement('canvas');
 const wctx=work.getContext('2d',{willReadFrequently:true});
 let st={};try{st=JSON.parse(localStorage.getItem('hoopscam')||'{}')||{}}catch(e){}
 const save=()=>{try{localStorage.setItem('hoopscam',JSON.stringify(st))}catch(e){}};
-let box=st.box||null,makes=0,best=st.best||0,prev=null,running=false,lastA=-1e9,cool=0,game=null;
+let box=null,makes=0,best=st.best||0,prev=null,running=false,lastA=-1e9,cool=0,game=null,orient='';
 $('#best').textContent=best;$('#sens').value=st.sens||5;
 
 /* sound */
@@ -108,82 +132,98 @@ const swish=()=>{noise(.3,.6,4200);tone(1320,.08,'sine',.08)};
 const buzz=()=>{tone(98,1,'sawtooth',.22);tone(104,1,'sawtooth',.18)};
 function say(t){try{const u=new SpeechSynthesisUtterance(t);u.rate=1.05;u.pitch=1.15;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 
+/* keep the screen awake while the camera runs */
+let lock=null;
+async function wake(){try{if(navigator.wakeLock)lock=await navigator.wakeLock.request('screen')}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(running&&document.visibilityState==='visible')wake()});
+
 /* camera */
 $('#start').addEventListener('click',async()=>{actx();$('#err').hidden=true;
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){showErr('This browser can\'t use the camera here. Open this page from its https:// web address in Safari or Chrome.');return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){showErr('This browser can\'t use the camera here. Open the https:// link in Safari or Chrome.');return}
   try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:640},height:{ideal:480}},audio:false});
-    v.srcObject=s;await v.play();running=true;$('#start').textContent='Camera on';$('#start').disabled=true;$('#game').disabled=false;
-    $('#hint').textContent=box?'Ready! Shoot away. Drag again to move the box.':'Drag a box from just above the rim to the bottom of the net.';
-    requestAnimationFrame(loop)}
+    v.srcObject=s;await v.play();running=true;wake();$('#start').textContent='Camera on';$('#start').disabled=true;$('#game').disabled=false;
+    hint();requestAnimationFrame(loop)}
   catch(e){showErr('The camera was blocked. Allow camera access for this site in the tablet\'s settings, then try again.')}});
 function showErr(t){const e=$('#err');e.textContent=t;e.hidden=false}
 
-/* drawing the box (stored as fractions of the view) */
+/* upright and sideways each remember their own box */
+function curOrient(){return v.videoWidth>=v.videoHeight?'wide':'tall'}
+function hint(){$('#hint').textContent=box?'Ready! Shoot away. Drag again to move the box.':'Drag a box from just above the rim to the bottom of the net.';$('#hint').hidden=false}
+
+/* where the video actually shows inside the camera window (object-fit:contain) */
+function vrect(){const vw=v.videoWidth||4,vh=v.videoHeight||3,cw=cam.clientWidth,ch=cam.clientHeight,s=Math.min(cw/vw,ch/vh),dw=vw*s,dh=vh*s;
+  return{x:(cw-dw)/2,y:(ch-dh)/2,w:dw,h:dh}}
+
 let drag=null;
-function pt(e){const r=cam.getBoundingClientRect();return{x:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),y:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))}}
-cam.addEventListener('pointerdown',e=>{if(!running)return;drag=pt(e);cam.setPointerCapture(e.pointerId)});
+function pt(e){const r=cam.getBoundingClientRect(),q=vrect();
+  return{x:Math.min(1,Math.max(0,(e.clientX-r.left-q.x)/q.w)),y:Math.min(1,Math.max(0,(e.clientY-r.top-q.y)/q.h))}}
+cam.addEventListener('pointerdown',e=>{if(!running)return;drag=pt(e);cam.setPointerCapture(e.pointerId);$('#hint').hidden=true});
 cam.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e);box={x:Math.min(drag.x,p.x),y:Math.min(drag.y,p.y),w:Math.abs(p.x-drag.x),h:Math.abs(p.y-drag.y)}});
-cam.addEventListener('pointerup',()=>{if(!drag)return;drag=null;if(box&&box.w>.04&&box.h>.06){st.box=box;save();$('#hint').textContent='Ready! Shoot away. Drag again to move the box.';prev=null}else box=st.box||null});
+cam.addEventListener('pointerup',()=>{if(!drag)return;drag=null;
+  if(box&&box.w>.03&&box.h>.04){st['box_'+orient]=box;save();prev=null}else box=st['box_'+orient]||null;hint();setTimeout(()=>{if(box)$('#hint').hidden=true},2500)});
 
 function zones(){if(!box)return null;
-  const A={x:box.x,y:box.y,w:box.w,h:box.h*.32};
-  const B={x:box.x+box.w*.18,y:box.y+box.h*.45,w:box.w*.64,h:box.h*.55};
-  return{A,B}}
+  return{A:{x:box.x,y:box.y,w:box.w,h:box.h*.32},B:{x:box.x+box.w*.18,y:box.y+box.h*.45,w:box.w*.64,h:box.h*.55}}}
 
-/* object-fit:cover mapping between view and video frame */
-function coverMap(){const vw=v.videoWidth,vh=v.videoHeight,cw=cam.clientWidth,ch=cam.clientHeight;const s=Math.max(cw/vw,ch/vh);
-  const sw=cw/s,sh=ch/s;return{sx:(vw-sw)/2,sy:(vh-sh)/2,sw,sh}}
-
-function motion(diff,z){const x0=Math.floor(z.x*W),y0=Math.floor(z.y*H),x1=Math.ceil((z.x+z.w)*W),y1=Math.ceil((z.y+z.h)*H);let n=0,c=0;
+function motion(diff,z){const x0=Math.floor(z.x*W),y0=Math.floor(z.y*H),x1=Math.min(W,Math.ceil((z.x+z.w)*W)),y1=Math.min(H,Math.ceil((z.y+z.h)*H));let n=0,c=0;
   for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){n++;if(diff[y*W+x])c++}return n?c/n:0}
 
 function loop(){if(!running)return;requestAnimationFrame(loop);
   if(!v.videoWidth)return;
-  const m=coverMap();wctx.drawImage(v,m.sx,m.sy,m.sw,m.sh,0,0,W,H);
+  const o=curOrient();
+  if(o!==orient){orient=o;box=st['box_'+o]||null;prev=null;hint()}
+  const nh=Math.round(160*v.videoHeight/v.videoWidth);
+  if(W!==160||H!==nh){W=160;H=nh;prev=null}
+  if(work.width!==W||work.height!==H){work.width=W;work.height=H}
+  wctx.drawImage(v,0,0,W,H);
   const d=wctx.getImageData(0,0,W,H).data,g=new Uint8Array(W*H);
   for(let i=0,j=0;i<g.length;i++,j+=4)g[i]=(d[j]*77+d[j+1]*150+d[j+2]*29)>>8;
   const sens=+$('#sens').value,thrPix=40-sens*2.5,thrA=.16-sens*.012,thrB=.13-sens*.01;
   const diff=new Uint8Array(W*H);
-  if(prev)for(let i=0;i<g.length;i++)diff[i]=Math.abs(g[i]-prev[i])>thrPix?1:0;
+  if(prev&&prev.length===g.length)for(let i=0;i<g.length;i++)diff[i]=Math.abs(g[i]-prev[i])>thrPix?1:0;
   prev=g;
   draw();
   const z=zones();if(!z)return;
   const a=motion(diff,z.A),b=motion(diff,z.B),now=performance.now();
   $('#mA').style.width=Math.min(100,a/thrA*50)+'%';$('#mB').style.width=Math.min(100,b/thrB*50)+'%';
-  $('#tA').style.left='50%';$('#tB').style.left='50%';
-  if(now<cool)return;
+  if(drag||now<cool)return;
   if(a>thrA)lastA=now;
   if(b>thrB&&now-lastA<750&&now-lastA>0){score(1);cool=now+1600;lastA=-1e9}
 }
 
-function draw(){const cw=ov.width=cam.clientWidth*devicePixelRatio,ch=ov.height=cam.clientHeight*devicePixelRatio;octx.clearRect(0,0,cw,ch);
-  const z=zones();if(!z)return;
-  const r=(q,col,fill)=>{octx.fillStyle=fill;octx.strokeStyle=col;octx.lineWidth=3*devicePixelRatio;octx.fillRect(q.x*cw,q.y*ch,q.w*cw,q.h*ch);octx.strokeRect(q.x*cw,q.y*ch,q.w*cw,q.h*ch)};
-  octx.setLineDash([8*devicePixelRatio,6*devicePixelRatio]);r(box,'#fff','rgba(0,0,0,0)');octx.setLineDash([]);
+function draw(){const dpr=devicePixelRatio||1,cw=cam.clientWidth,ch=cam.clientHeight;
+  if(ov.width!==Math.round(cw*dpr)||ov.height!==Math.round(ch*dpr)){ov.width=Math.round(cw*dpr);ov.height=Math.round(ch*dpr)}
+  octx.setTransform(dpr,0,0,dpr,0,0);octx.clearRect(0,0,cw,ch);
+  const z=zones();if(!z)return;const q=vrect();
+  const r=(b,col,fill)=>{const x=q.x+b.x*q.w,y=q.y+b.y*q.h,w=b.w*q.w,h=b.h*q.h;octx.fillStyle=fill;octx.strokeStyle=col;octx.lineWidth=3;octx.fillRect(x,y,w,h);octx.strokeRect(x,y,w,h)};
+  octx.setLineDash([8,6]);r(box,'#fff','rgba(0,0,0,0)');octx.setLineDash([]);
   r(z.A,'#ffd23f','rgba(255,210,63,.15)');r(z.B,'#ff7a1a','rgba(255,122,26,.18)')}
 
 const HYPE=['Swish!','Nothing but net!','Bang!','Count it!','Splash!','Bucket!'];
 let streak=0,lastMake=0;
+function flashMsg(m){const h=$('#hint');h.textContent=m;h.hidden=false;clearTimeout(flashMsg.t);flashMsg.t=setTimeout(()=>{h.hidden=true},1400)}
 function score(n){if(game&&!game.on)return;makes=Math.max(0,makes+n);$('#makes').textContent=makes;
   if(n>0){swish();const f=$('#flash');f.classList.add('on');setTimeout(()=>f.classList.remove('on'),60);
     const now=performance.now();streak=now-lastMake<8000?streak+1:1;lastMake=now;
     let m=HYPE[Math.floor(Math.random()*HYPE.length)];if(streak===3){m='Heating up!';say(m)}else if(streak===5){m='On fire!';say("He's on fire!")}
-    $('#msg').textContent=m}
-  else $('#msg').textContent='Fixed it.';
+    flashMsg(m)}
+  else flashMsg('Fixed it.');
   if(!game&&makes>best){best=makes;st.best=best;save();$('#best').textContent=best}}
 
 $('#plus').addEventListener('click',()=>score(1));
 $('#minus').addEventListener('click',()=>score(-1));
-$('#reset').addEventListener('click',()=>{makes=0;streak=0;$('#makes').textContent=0;$('#msg').innerHTML='&nbsp;'});
+$('#reset').addEventListener('click',()=>{makes=0;streak=0;$('#makes').textContent=0});
 $('#sens').addEventListener('input',()=>{st.sens=+$('#sens').value;save()});
+$('#setBtn').addEventListener('click',()=>{$('#sheet').hidden=false});
+$('#closeSet').addEventListener('click',()=>{$('#sheet').hidden=true});
 
-$('#game').addEventListener('click',()=>{if(game&&game.on)return;makes=0;$('#makes').textContent=0;let n=3;$('#msg').textContent='3';tone(880,.13);
-  const cd=setInterval(()=>{n--;if(n>0){$('#msg').textContent=n;tone(880,.13)}else{clearInterval(cd);tone(1320,.3);$('#msg').textContent='GO!';
+$('#game').addEventListener('click',()=>{if(game&&game.on)return;makes=0;$('#makes').textContent=0;let n=3;flashMsg('3');tone(880,.13);
+  const cd=setInterval(()=>{n--;if(n>0){flashMsg(String(n));tone(880,.13)}else{clearInterval(cd);tone(1320,.3);flashMsg('GO!');
     game={on:true,end:Date.now()+60000};const t=setInterval(()=>{const s=Math.max(0,Math.ceil((game.end-Date.now())/1000));$('#time').textContent=s;$('#time').classList.toggle('red',s<=10);
       if(s===10&&!game.ten){game.ten=true;say('Ten seconds!')}
       if(s<=0){clearInterval(t);game.on=false;buzz();
-        if(makes>best){best=makes;st.best=best;save();$('#best').textContent=best;$('#msg').textContent='New record: '+makes+'!';say('New record! '+makes+' baskets!')}
-        else{$('#msg').textContent='Time! '+makes+' baskets.';say(makes+' baskets!')}
+        if(makes>best){best=makes;st.best=best;save();$('#best').textContent=best;flashMsg('New record: '+makes+'!');say('New record! '+makes+' baskets!')}
+        else{flashMsg('Time! '+makes+' baskets.');say(makes+' baskets!')}
         setTimeout(()=>{game=null;$('#time').textContent='--';$('#time').classList.remove('red')},3000)}},200)}},800)});
 }
 </script>
