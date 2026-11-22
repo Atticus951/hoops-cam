@@ -2,75 +2,70 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Dribble Drills</title>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#1f4fd8;--panel:#fff;--ink:#10183a;--soft:#5b6690;--R:#ff7a1a;--L:#22c3e6;--led:#ffd23f;--board:#0b1430;--line:#e3e8f7}
+:root{--bg:#1f4fd8;--panel:#fff;--ink:#10183a;--soft:#5b6690;--R:#ff7a1a;--L:#22c3e6;--led:#ffd23f;--glass:rgba(8,16,44,.78);--line:#e3e8f7}
 *{box-sizing:border-box;min-width:0}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:#fff;font:16px/1.4 Rubik,system-ui,sans-serif;-webkit-tap-highlight-color:transparent;overflow:hidden}
+body{margin:0;background:#000;color:#fff;font:16px/1.4 Rubik,system-ui,sans-serif;-webkit-tap-highlight-color:transparent;overflow:hidden}
+[hidden]{display:none!important}
 h1,.led,.call{font-family:Bungee,Impact,sans-serif;font-weight:400}
-h1{font-size:22px;line-height:1;margin:0}
 button{font:inherit;font-weight:800;border:0;border-radius:14px;min-height:44px;padding:8px 14px;cursor:pointer;background:#fff;color:var(--bg)}
 button.go{background:var(--R);color:#fff}
-button.ghost{background:rgba(255,255,255,.16);color:#fff}
+button.ghost{background:rgba(255,255,255,.18);color:#fff}
 button:disabled{opacity:.45}
 button:focus-visible{outline:4px solid var(--led);outline-offset:2px}
 
-.app{height:100vh;height:100dvh;display:grid;gap:10px;padding:10px;
-  grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;
-  grid-template-areas:"top" "cam" "board" "drills"}
-.top{grid-area:top;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.top h1{margin-right:auto}
-.cam{grid-area:cam;position:relative;background:#000;border-radius:18px;overflow:hidden;touch-action:none}
+/* camera fills the whole screen */
+.cam{position:fixed;inset:0;background:#000;touch-action:none}
 .cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%}
-.cam video{object-fit:contain;transform:scaleX(-1)}
+.cam video{object-fit:cover;transform:scaleX(-1)}
 .cam.back video{transform:none}
-.hint{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(6,14,40,.85);border-radius:12px;padding:8px 12px;font-weight:700;text-align:center;font-size:16px;pointer-events:none}
-.err{position:absolute;left:10px;right:10px;top:10px;background:#ff5a4a;color:#fff;border-radius:12px;padding:10px 12px;font-weight:700}
-.count{position:absolute;inset:0;display:grid;place-items:center;font-family:Bungee,sans-serif;font-size:min(30vw,30vh);color:var(--led);text-shadow:0 0 30px rgba(0,0,0,.7);pointer-events:none}
 
-.board{grid-area:board;background:var(--board);border-radius:18px;border:5px solid #26335c;padding:8px 12px;display:grid;grid-template-columns:minmax(0,1.6fr) repeat(2,minmax(0,1fr));gap:8px;align-items:center;text-align:center}
-.board small{display:block;color:#93a0cc;font-size:13px;font-weight:600}
-.call{font-size:clamp(24px,4.4vh,40px);line-height:1.05;color:#fff;text-align:start}
-.call.R{color:var(--R)}.call.L{color:var(--L)}
-.sub{color:#93a0cc;font-size:14px;font-weight:600;text-align:start;min-height:20px}
-.led{color:var(--led);font-size:clamp(30px,6vh,58px);line-height:1;text-shadow:0 0 12px rgba(255,210,63,.5)}
-.led.red{color:#ff5a4a}
-.prog{grid-column:1/-1;height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
-.prog i{display:block;height:100%;width:0;background:var(--led)}
-
-.drills{grid-area:drills;display:flex;gap:8px;align-items:stretch}
-.chips{display:flex;gap:8px;overflow-x:auto;flex:1;padding-bottom:2px;scrollbar-width:none}
+/* menu drops down from the top when the screen is tapped */
+.menu{position:fixed;left:0;right:0;top:0;z-index:3;background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  padding:calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 12px calc(12px + env(safe-area-inset-left));
+  display:grid;gap:10px;transition:transform .25s ease}
+.menu.closed{transform:translateY(-105%)}
+.mrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mrow h1{font-size:20px;margin:0 auto 0 0}
+.drills{display:flex;gap:8px;align-items:stretch}
+.chips{display:flex;gap:8px;overflow-x:auto;flex:1;scrollbar-width:none}
 .chip{flex:none;background:rgba(255,255,255,.16);color:#fff;text-align:start;padding:6px 12px;line-height:1.2}
 .chip b{display:block;font-size:15px}.chip span{font-size:12px;font-weight:600;opacity:.85}
 .chip[aria-pressed=true]{background:#fff;color:var(--ink)}
-#go{min-width:96px;font-size:18px}
+#go{min-width:100px;font-size:18px}
+.tab{position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));z-index:2;background:var(--glass);color:#fff;font-size:14px;min-height:40px}
 
-@media (orientation:landscape) and (min-width:640px){
-  .app{grid-template-columns:minmax(0,1fr) clamp(260px,30vw,340px);grid-template-rows:auto auto minmax(0,1fr);
-    grid-template-areas:"cam top" "cam board" "cam drills"}
-  .top{flex-direction:row;flex-wrap:wrap}
-  .top h1{width:100%;margin:0 0 2px}
-  .board{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .board .callbox{grid-column:1/-1}
-  .drills{flex-direction:column;min-height:0}
-  .chips{flex-direction:column;overflow-y:auto;overflow-x:hidden}
-  .chip{flex:none}
-}
+/* scoreboard floats over the bottom of the picture */
+.hud{position:fixed;left:calc(10px + env(safe-area-inset-left));right:calc(10px + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom));z-index:2;
+  background:var(--glass);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:18px;padding:8px 14px;
+  display:grid;grid-template-columns:minmax(0,1.7fr) repeat(2,minmax(0,1fr));gap:8px;align-items:center;text-align:center;pointer-events:none}
+.hud small{display:block;color:#a9b4dc;font-size:12px;font-weight:600}
+.call{font-size:clamp(22px,4vh,38px);line-height:1.05;text-align:start}
+.call.R{color:var(--R)}.call.L{color:var(--L)}
+.sub{color:#a9b4dc;font-size:14px;font-weight:600;text-align:start;min-height:20px}
+.led{color:var(--led);font-size:clamp(30px,6vh,56px);line-height:1;text-shadow:0 0 12px rgba(255,210,63,.5)}
+.led.red{color:#ff5a4a}
+.prog{grid-column:1/-1;height:6px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--led)}
+@media (orientation:landscape){.hud{left:auto;width:min(520px,60vw)}}
 
-.sheet{position:fixed;left:0;right:0;bottom:0;max-height:60vh;overflow:auto;background:var(--panel);color:var(--ink);border-radius:20px 20px 0 0;padding:16px 18px 22px;box-shadow:0 -10px 30px rgba(0,0,0,.35);z-index:5}
-[hidden]{display:none!important}
+.hint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;max-width:min(86vw,520px);background:var(--glass);border-radius:14px;padding:10px 16px;font-weight:700;text-align:center;font-size:17px;pointer-events:none}
+.err{position:fixed;left:12px;right:12px;top:40%;z-index:4;background:#ff5a4a;color:#fff;border-radius:12px;padding:12px 14px;font-weight:700;text-align:center}
+.count{position:fixed;inset:0;z-index:4;display:grid;place-items:center;font-family:Bungee,sans-serif;font-size:min(32vw,32vh);color:var(--led);text-shadow:0 0 30px rgba(0,0,0,.7);pointer-events:none}
+
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:65vh;overflow:auto;background:var(--panel);color:var(--ink);border-radius:20px 20px 0 0;padding:16px 18px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(0,0,0,.35);z-index:5}
 .sheet .head{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .sheet button.close{background:var(--line);color:var(--ink)}
 .sheet label{display:block;font-weight:700;margin-top:10px}
 input[type=range]{width:100%;height:36px;accent-color:var(--R)}
 .meters{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 10px;align-items:center;font-size:15px}
 .bar{height:14px;background:var(--line);border-radius:99px;overflow:hidden;position:relative}
-.bar i{display:block;height:100%;width:0}
+.bar i{display:block;height:100%;width:0;transition:width .08s}
 #mR{background:var(--R)}#mL{background:var(--L)}
-.bar b{position:absolute;left:50%;top:-3px;bottom:-3px;width:3px;background:var(--ink)}
 ol{padding-left:20px;margin:6px 0}
 .modal{position:fixed;inset:0;background:rgba(6,14,40,.8);display:grid;place-items:center;z-index:6;padding:16px}
 .card{background:var(--panel);color:var(--ink);border-radius:22px;padding:22px;max-width:420px;width:100%;text-align:center}
@@ -80,55 +75,58 @@ ol{padding-left:20px;margin:6px 0}
 .card .row button:first-child{background:var(--R);color:#fff}
 .split{display:flex;justify-content:center;gap:18px;font-weight:800;margin-top:6px}
 .split .r{color:var(--R)}.split .l{color:#0e93b0}
+@media (prefers-reduced-motion:reduce){.menu{transition:none}}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="top">
+<div class="cam" id="cam">
+  <video id="v" playsinline muted></video>
+  <canvas id="ov"></canvas>
+</div>
+
+<div class="menu" id="menu">
+  <div class="mrow">
     <h1>Dribble Drills</h1>
     <button class="go" id="start">Turn on camera</button>
     <button class="ghost" id="zonesBtn" disabled>Draw zones</button>
     <button class="ghost" id="setBtn">Settings</button>
+    <button class="ghost" id="hideBtn">Hide menu</button>
   </div>
-
-  <div class="cam" id="cam">
-    <video id="v" playsinline muted></video>
-    <canvas id="ov"></canvas>
-    <div class="count" id="cd" hidden></div>
-    <div class="hint" id="hint">Turn on the camera, then draw a box for each hand.</div>
-    <div id="err" class="err" hidden></div>
-  </div>
-
-  <div class="board">
-    <div class="callbox"><div class="call" id="call">Pick a drill</div><div class="sub" id="sub">Then press Start</div></div>
-    <div><small>Time</small><div class="led" id="time">--</div></div>
-    <div><small>Dribbles</small><div class="led" id="cnt">0</div></div>
-    <div class="prog"><i id="prog"></i></div>
-  </div>
-
   <div class="drills">
     <div class="chips" id="chips"></div>
     <button class="go" id="go" disabled>Start</button>
   </div>
 </div>
+<button class="tab" id="tab" hidden>Menu</button>
+
+<div class="hud">
+  <div><div class="call" id="call">Pick a drill</div><div class="sub" id="sub">Then press Start</div></div>
+  <div><small>Time</small><div class="led" id="time">--</div></div>
+  <div><small>Dribbles</small><div class="led" id="cnt">0</div></div>
+  <div class="prog"><i id="prog"></i></div>
+</div>
+
+<div class="hint" id="hint">Turn on the camera, then draw a box for each hand.</div>
+<div class="count" id="cd" hidden></div>
+<div class="err" id="err" hidden></div>
 
 <div class="sheet" id="sheet" hidden>
   <div class="head"><strong>Settings</strong><button class="close" id="closeSet">Done</button></div>
   <label for="sens">Sensitivity</label>
   <input type="range" id="sens" min="1" max="10" value="5">
   <div class="meters">
-    <span>Right</span><div class="bar"><i id="mR"></i><b></b></div>
-    <span>Left</span><div class="bar"><i id="mL"></i><b></b></div>
+    <span>Right</span><div class="bar"><i id="mR"></i></div>
+    <span>Left</span><div class="bar"><i id="mL"></i></div>
   </div>
-  <p style="margin:8px 0 0;color:var(--soft)">Each bounce should push a bar past the black line once. Missing bounces: slide up. Counting extra: slide down.</p>
+  <p style="margin:8px 0 0;color:var(--soft)">The bars show where the ball is in each box: full at the floor, empty at the top. One trip down and back up counts as one dribble. Missing dribbles: slide up. Counting extra: slide down.</p>
   <label><input type="checkbox" id="voice" checked> Coach voice</label>
   <label><input type="checkbox" id="backcam"> Use back camera instead</label>
   <strong style="display:block;margin-top:12px">Setup tips</strong>
   <ol>
     <li>Prop the tablet 6 to 10 feet away with the screen facing him, so the front camera sees him from head to floor.</li>
-    <li>Tap Draw zones. Drag the right-hand box first, then the left. The picture is mirrored, so his right hand shows on the right side of the screen.</li>
-    <li>Draw each box low, from the floor to about knee height, where the ball bounces. Keep the two boxes apart.</li>
-    <li>Dribble a few times and watch for the R or L flash. Adjust sensitivity until each bounce flashes once.</li>
+    <li>Tap the screen for the menu, then Draw zones. Drag the right-hand box first, then the left. The picture is mirrored, so his right hand shows on the right side of the screen.</li>
+    <li>Draw each box from the floor up to about the height of the bounce, where the ball travels. Keep the two boxes apart.</li>
+    <li>Dribble a few times and watch for the R or L flash, once per dribble. Adjust sensitivity if needed.</li>
   </ol>
 </div>
 
@@ -144,7 +142,7 @@ const save=()=>{try{localStorage.setItem('dribble',JSON.stringify(st))}catch(e){
 st.best=st.best||{};
 $('#sens').value=st.sens||5;$('#voice').checked=st.voice!==false;$('#backcam').checked=!!st.back;
 
-/* ---------- drills: R = right zone, L = left zone, X = crossover (alternate each bounce), REST ---------- */
+/* ---------- drills: R = right zone, L = left zone, X = crossover (alternate each dribble), REST ---------- */
 const DRILLS=[
   {id:'right',name:'Right hand',tag:'30s',steps:[['R',30]]},
   {id:'left',name:'Left hand',tag:'30s',steps:[['L',30]]},
@@ -160,6 +158,11 @@ function chips(){$('#chips').innerHTML=DRILLS.map(d=>`<button class="chip" data-
 $('#chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b||run)return;pick=b.dataset.id;st.pick=pick;save();chips();idle()});
 chips();
 
+/* ---------- menu ---------- */
+function menu(open){$('#menu').classList.toggle('closed',!open);$('#tab').hidden=open||!running}
+$('#hideBtn').addEventListener('click',()=>menu(false));
+$('#tab').addEventListener('click',()=>menu(true));
+
 /* ---------- sound + voice ---------- */
 let ac=null;
 function actx(){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}return ac}
@@ -173,7 +176,7 @@ function say(t){if(!$('#voice').checked)return;try{const u=new SpeechSynthesisUt
 let running=false,facing='user',lock=null;
 async function wake(){try{if(navigator.wakeLock)lock=await navigator.wakeLock.request('screen')}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(running&&document.visibilityState==='visible')wake()});
-function showErr(t){const e=$('#err');e.textContent=t;e.hidden=false}
+function showErr(t){const e=$('#err');e.textContent=t;e.hidden=false;setTimeout(()=>{e.hidden=true},7000)}
 async function openCam(){
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){showErr('This browser can\'t use the camera here. Open the https:// link in Safari or Chrome.');return false}
   if(v.srcObject){v.srcObject.getTracks().forEach(t=>t.stop());v.srcObject=null}
@@ -189,48 +192,65 @@ $('#start').addEventListener('click',async()=>{actx();$('#err').hidden=true;if(!
 $('#backcam').addEventListener('change',async()=>{st.back=$('#backcam').checked;save();if(running)await openCam()});
 
 /* ---------- zones, saved per camera and per upright/sideways ---------- */
-let zones={R:null,L:null},orient='',drawing=null,drag=null,dragBox=null;
+let zones={R:null,L:null},orient='',drawing=null,drag=null,dragBox=null,downAt=null;
 const zkey=()=>'z_'+facing+'_'+orient;
 function curOrient(){return v.videoWidth>=v.videoHeight?'wide':'tall'}
-function vrect(){const vw=v.videoWidth||4,vh=v.videoHeight||3,cw=cam.clientWidth,ch=cam.clientHeight,s=Math.min(cw/vw,ch/vh),dw=vw*s,dh=vh*s;return{x:(cw-dw)/2,y:(ch-dh)/2,w:dw,h:dh}}
+/* where the video sits on screen (object-fit:cover, so it can spill past the edges) */
+function vrect(){const vw=v.videoWidth||4,vh=v.videoHeight||3,cw=cam.clientWidth,ch=cam.clientHeight,s=Math.max(cw/vw,ch/vh),dw=vw*s,dh=vh*s;return{x:(cw-dw)/2,y:(ch-dh)/2,w:dw,h:dh}}
 function pt(e){const r=cam.getBoundingClientRect(),q=vrect();return{x:Math.min(1,Math.max(0,(e.clientX-r.left-q.x)/q.w)),y:Math.min(1,Math.max(0,(e.clientY-r.top-q.y)/q.h))}}
-function hint(t){const h=$('#hint');if(t){h.textContent=t;h.hidden=false}else h.hidden=true}
-function startDraw(){if(run)return;drawing='R';hint('Drag a box where he dribbles with his RIGHT hand (floor to knee).')}
+let hintT=null;
+function hint(t,ms){const h=$('#hint');clearTimeout(hintT);if(t){h.textContent=t;h.hidden=false;if(ms)hintT=setTimeout(()=>{h.hidden=true},ms)}else h.hidden=true}
+function startDraw(){if(run||!running)return;drawing='R';menu(false);hint('Drag a box where he dribbles with his RIGHT hand (floor to bounce height).')}
 $('#zonesBtn').addEventListener('click',startDraw);
-cam.addEventListener('pointerdown',e=>{if(!drawing)return;drag=pt(e);dragBox=null;cam.setPointerCapture(e.pointerId)});
+cam.addEventListener('pointerdown',e=>{downAt={x:e.clientX,y:e.clientY};if(!drawing)return;drag=pt(e);dragBox=null;cam.setPointerCapture(e.pointerId)});
 cam.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e);dragBox={x:Math.min(drag.x,p.x),y:Math.min(drag.y,p.y),w:Math.abs(p.x-drag.x),h:Math.abs(p.y-drag.y)}});
-cam.addEventListener('pointerup',()=>{if(!drag)return;drag=null;
+cam.addEventListener('pointerup',e=>{
+  if(!drawing){ /* a plain tap on the picture opens or closes the menu */
+    if(downAt&&Math.hypot(e.clientX-downAt.x,e.clientY-downAt.y)<12)menu($('#menu').classList.contains('closed'));
+    downAt=null;return}
+  if(!drag)return;drag=null;
   if(!dragBox||dragBox.w<.04||dragBox.h<.04){dragBox=null;return}
   zones[drawing]=dragBox;dragBox=null;
   if(drawing==='R'){drawing='L';hint('Now drag a box where he dribbles with his LEFT hand.')}
-  else{drawing=null;st[zkey()]=zones;save();prev=null;idle()}});
+  else{drawing=null;st[zkey()]=zones;save();prev=null;resetTrack();idle();menu(true)}});
 
-/* ---------- motion and bounce counting ---------- */
+/* ---------- dribble counting ----------
+   For each zone we follow where the moving ball is (the centre of the changed pixels, top 0 to floor 1).
+   One dribble = the ball travels down to its lowest point and turns back up; it then has to rise again
+   before the next one can count. So down + up = 1. */
 let prev=null;
-const zs={R:{on:false,last:0},L:{on:false,last:0}};
-function motion(diff,z){const zz=facing==='user'?{x:1-z.x-z.w,y:z.y,w:z.w,h:z.h}:z;
-  const x0=Math.floor(zz.x*W),y0=Math.floor(zz.y*H),x1=Math.min(W,Math.ceil((zz.x+zz.w)*W)),y1=Math.min(H,Math.ceil((zz.y+zz.h)*H));let n=0,c=0;
-  for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){n++;if(diff[y*W+x])c++}return n?c/n:0}
+const zs={R:{},L:{}};
+function resetTrack(){for(const k of ['R','L'])zs[k]={phase:'down',hi:0,lo:1,y:null,seen:0,last:0}}
+resetTrack();
+function sample(diff,z){const zz=facing==='user'?{x:1-z.x-z.w,y:z.y,w:z.w,h:z.h}:z;
+  const x0=Math.floor(zz.x*W),y0=Math.floor(zz.y*H),x1=Math.min(W,Math.ceil((zz.x+zz.w)*W)),y1=Math.min(H,Math.ceil((zz.y+zz.h)*H));
+  let n=0,c=0,sy=0;
+  for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){n++;if(diff[y*W+x]){c++;sy+=y}}
+  return{m:n?c/n:0,y:c?((sy/c)-y0)/Math.max(1,y1-y0):null}}
 const pops={R:0,L:0};
 function loop(){if(!running)return;requestAnimationFrame(loop);if(!v.videoWidth)return;
-  const o=curOrient();if(o!==orient){orient=o;zones=st[zkey()]||{R:null,L:null};prev=null;idle()}
+  const o=curOrient();if(o!==orient){orient=o;zones=st[zkey()]||{R:null,L:null};prev=null;resetTrack();idle();if(!(zones.R&&zones.L))startDraw()}
   const nh=Math.round(160*v.videoHeight/v.videoWidth);if(H!==nh){H=nh;prev=null}
   if(work.width!==W||work.height!==H){work.width=W;work.height=H}
   wctx.drawImage(v,0,0,W,H);
   const d=wctx.getImageData(0,0,W,H).data,g=new Uint8Array(W*H);
   for(let i=0,j=0;i<g.length;i++,j+=4)g[i]=(d[j]*77+d[j+1]*150+d[j+2]*29)>>8;
-  const sens=+$('#sens').value,thrPix=38-sens*2.4,thr=.15-sens*.012;
+  const sens=+$('#sens').value,thrPix=38-sens*2.4,present=.05-sens*.0035,turn=.24-sens*.014;
   const diff=new Uint8Array(W*H);
   if(prev&&prev.length===g.length)for(let i=0;i<g.length;i++)diff[i]=Math.abs(g[i]-prev[i])>thrPix?1:0;
   const fresh=!prev;prev=g;const now=performance.now();
   for(const k of ['R','L']){const z=zones[k];if(!z||fresh)continue;
-    const m=motion(diff,z),s=zs[k];
-    $('#m'+k).style.width=Math.min(100,m/thr*50)+'%';
-    if(!s.on&&m>thr&&now-s.last>190){s.on=true;s.last=now;bounce(k)}
-    else if(s.on&&m<thr*.45)s.on=false}
+    const r=sample(diff,z),s=zs[k];
+    if(r.m<present||r.y===null){ if(now-s.seen>600){s.phase='down';s.hi=0;s.lo=1;s.y=null} continue }
+    s.seen=now;s.y=s.y===null?r.y:s.y*.45+r.y*.55;
+    $('#m'+k).style.width=Math.round(s.y*100)+'%';
+    if(s.phase==='down'){ if(s.y>s.hi)s.hi=s.y;
+      if(s.y<s.hi-turn&&now-s.last>180){s.last=now;s.phase='up';s.lo=s.y;dribble(k)} }
+    else { if(s.y<s.lo)s.lo=s.y;
+      if(s.y>s.lo+turn){s.phase='down';s.hi=s.y} } }
   if(run)stepTick();
   draw(now)}
-function bounce(k){pops[k]=performance.now();if(!run||!run.live)return;onBounce(k)}
+function dribble(k){pops[k]=performance.now();if(!run||!run.live)return;onDribble(k)}
 
 function draw(now){const dpr=devicePixelRatio||1,cw=cam.clientWidth,ch=cam.clientHeight;
   if(ov.width!==Math.round(cw*dpr)||ov.height!==Math.round(ch*dpr)){ov.width=Math.round(cw*dpr);ov.height=Math.round(ch*dpr)}
@@ -239,12 +259,12 @@ function draw(now){const dpr=devicePixelRatio||1,cw=cam.clientWidth,ch=cam.clien
   const box=(b,col,label,state)=>{const x=q.x+b.x*q.w,y=q.y+b.y*q.h,w=b.w*q.w,h=b.h*q.h;
     octx.globalAlpha=state==='dim'?.35:1;octx.fillStyle=col+'2e';octx.fillRect(x,y,w,h);
     octx.lineWidth=state==='hot'?7:3;octx.strokeStyle=col;octx.strokeRect(x,y,w,h);
-    octx.fillStyle=col;octx.font='700 '+Math.max(16,Math.min(30,h*.3))+'px Bungee,sans-serif';octx.textBaseline='top';octx.fillText(label,x+6,y+6);octx.globalAlpha=1};
+    octx.fillStyle=col;octx.font='700 '+Math.max(16,Math.min(30,h*.25))+'px Bungee,sans-serif';octx.textBaseline='top';octx.fillText(label,x+6,y+6);octx.globalAlpha=1};
   for(const k of ['R','L']){const z=zones[k];if(!z)continue;
-    const col=k==='R'?'#ff7a1a':'#22c3e6',flash=now-pops[k]<180;
+    const col=k==='R'?'#ff7a1a':'#22c3e6',flash=now-pops[k]<220;
     const state=target?(target===k?'hot':'dim'):(flash?'hot':'');
     box(z,col,k==='R'?'RIGHT':'LEFT',state);
-    if(flash){const x=q.x+(z.x+z.w/2)*q.w,y=q.y+(z.y+z.h/2)*q.h;octx.fillStyle='#fff';octx.font='700 32px Bungee,sans-serif';octx.textAlign='center';octx.textBaseline='middle';octx.fillText(k,x,y);octx.textAlign='start'}}
+    if(flash){const x=q.x+(z.x+z.w/2)*q.w,y=q.y+(z.y+z.h/2)*q.h;octx.fillStyle='#fff';octx.font='700 40px Bungee,sans-serif';octx.textAlign='center';octx.textBaseline='middle';octx.fillText(k,x,y);octx.textAlign='start'}}
   if(dragBox)box(dragBox,drawing==='R'?'#ff7a1a':'#22c3e6',drawing==='R'?'RIGHT':'LEFT','hot')}
 
 /* ---------- running a drill ---------- */
@@ -258,18 +278,17 @@ function idle(){
   $('#sub').textContent=d.steps.filter(s=>s[0]!=='REST').map(s=>NAME[s[0]]+' '+s[1]+'s').join(' \u2192 ');
   $('#time').textContent=tot;$('#time').classList.remove('red');$('#cnt').textContent=0;$('#prog').style.width='0';
   if(!running)hint('Turn on the camera, then draw a box for each hand.');
-  else if(!drawing)hint(ok?'Zones set. Dribble to test: each bounce flashes R or L.':'Tap Draw zones to set the right and left dribble boxes.');
-  if(ok&&!drawing&&running)setTimeout(()=>{if(!run&&!drawing)hint()},4000)}
+  else if(!drawing)hint(ok?'Zones set. Dribble to test: each dribble flashes R or L once. Tap the screen for the menu.':'Tap Draw zones to set the right and left dribble boxes.',ok?4500:0)}
 
-$('#go').addEventListener('click',()=>{if(run){stop(true);return}actx();begin()});
-function begin(){const d=drill();
-  run={d,i:-1,total:0,byZone:{R:0,L:0},stepCount:0,live:false,want:null,end:0,t0:0,dur:d.steps.reduce((a,s)=>a+s[1],0)*1000};
-  $('#go').textContent='Stop';$('#go').disabled=false;$('#zonesBtn').disabled=true;hint();
+$('#go').addEventListener('click',()=>{if(run){stop();return}actx();begin()});
+function begin(){const d=drill();resetTrack();
+  run={d,i:-1,total:0,byZone:{R:0,L:0},live:false,want:null,end:0,t0:0,dur:d.steps.reduce((a,s)=>a+s[1],0)*1000};
+  $('#go').textContent='Stop';$('#go').disabled=false;$('#zonesBtn').disabled=true;hint();menu(false);
   let n=3;const c=$('#cd');c.hidden=false;c.textContent=n;tone(880,.12);say(d.name+'. Ready?');
   cdT=setInterval(()=>{n--;if(n>0){c.textContent=n;tone(880,.12)}else{clearInterval(cdT);c.textContent='GO';tone(1320,.25);setTimeout(()=>{c.hidden=true},400);run.t0=performance.now();nextStep()}},900)}
 function nextStep(){run.i++;
   if(run.i>=run.d.steps.length){finish();return}
-  const [z,s]=run.d.steps[run.i];run.zone=z;run.stepCount=0;run.end=performance.now()+s*1000;
+  const [z,s]=run.d.steps[run.i];run.zone=z;run.end=performance.now()+s*1000;
   run.live=z!=='REST';run.want=z==='X'?'R':(z==='REST'?null:z);
   const call=$('#call');call.className='call '+(run.want||'');call.textContent=NAME[z];
   const nx=run.d.steps[run.i+1];$('#sub').textContent=nx?'Next: '+NAME[nx[0]]+' '+nx[1]+'s':'Last one!';
@@ -279,12 +298,12 @@ function stepTick(){if(!run||run.t0===0)return;const now=performance.now(),left=
   $('#time').textContent=Math.ceil(left);$('#time').classList.toggle('red',left<=5&&run.live);
   $('#prog').style.width=Math.min(100,(now-run.t0)/run.dur*100)+'%';
   if(left<=0)nextStep()}
-function onBounce(k){
+function onDribble(k){
   if(run.zone==='X'){if(k!==run.want){$('#sub').textContent='Cross to the '+(run.want==='R'?'right':'left')+'!';return}
     run.want=k==='R'?'L':'R';$('#call').className='call '+run.want;$('#call').textContent=run.want==='R'?'Cross right':'Cross left'}
   else if(k!==run.zone)return;
-  run.total++;run.stepCount++;run.byZone[k]++;tick(k);$('#cnt').textContent=run.total}
-function stop(user){clearInterval(cdT);$('#cd').hidden=true;run=null;$('#go').textContent='Start';$('#zonesBtn').disabled=false;try{speechSynthesis.cancel()}catch(e){}idle()}
+  run.total++;run.byZone[k]++;tick(k);$('#cnt').textContent=run.total}
+function stop(){clearInterval(cdT);$('#cd').hidden=true;run=null;$('#go').textContent='Start';$('#zonesBtn').disabled=false;try{speechSynthesis.cancel()}catch(e){}idle()}
 function finish(){const r=run;buzz();run.live=false;
   const prevBest=st.best[r.d.id]||0,rec=r.total>prevBest;if(rec){st.best[r.d.id]=r.total;save()}
   const secs=r.d.steps.filter(s=>s[0]!=='REST').reduce((a,s)=>a+s[1],0),pace=(r.total/secs*60).toFixed(0);
@@ -294,11 +313,11 @@ function finish(){const r=run;buzz();run.live=false;
     <p style="margin:10px 0 0">${rec&&r.total>0?'<b>New record!</b>':'Best: '+prevBest}</p>
     <div class="row"><button id="again">Go again</button><button id="close">Pick another</button></div>`;
   $('#res').hidden=false;stop();chips();
-  $('#again').onclick=()=>{$('#res').hidden=true;begin()};$('#close').onclick=()=>{$('#res').hidden=true}}
+  $('#again').onclick=()=>{$('#res').hidden=true;begin()};$('#close').onclick=()=>{$('#res').hidden=true;menu(true)}}
 
 $('#sens').addEventListener('input',()=>{st.sens=+$('#sens').value;save()});
 $('#voice').addEventListener('change',()=>{st.voice=$('#voice').checked;save()});
-$('#setBtn').addEventListener('click',()=>{$('#sheet').hidden=false});
+$('#setBtn').addEventListener('click',()=>{$('#sheet').hidden=false;menu(false)});
 $('#closeSet').addEventListener('click',()=>{$('#sheet').hidden=true});
 idle();
 }
