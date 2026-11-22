@@ -3,96 +3,112 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hoops Cam</title>
+<title>Dribble Drills</title>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#1f4fd8;--panel:#fff;--ink:#10183a;--soft:#5b6690;--ball:#ff7a1a;--led:#ffd23f;--board:#0b1430;--line:#e3e8f7}
+:root{--bg:#1f4fd8;--panel:#fff;--ink:#10183a;--soft:#5b6690;--R:#ff7a1a;--L:#22c3e6;--led:#ffd23f;--board:#0b1430;--line:#e3e8f7}
 *{box-sizing:border-box;min-width:0}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:#fff;font:16px/1.4 Rubik,system-ui,sans-serif;-webkit-tap-highlight-color:transparent;overflow:hidden}
-h1,.led{font-family:Bungee,Impact,sans-serif;font-weight:400}
+h1,.led,.call{font-family:Bungee,Impact,sans-serif;font-weight:400}
 h1{font-size:22px;line-height:1;margin:0}
 button{font:inherit;font-weight:800;border:0;border-radius:14px;min-height:44px;padding:8px 14px;cursor:pointer;background:#fff;color:var(--bg)}
-button.go{background:var(--ball);color:#fff}
+button.go{background:var(--R);color:#fff}
 button.ghost{background:rgba(255,255,255,.16);color:#fff}
-button:disabled{opacity:.5}
+button:disabled{opacity:.45}
 button:focus-visible{outline:4px solid var(--led);outline-offset:2px}
 
-/* whole app always fits the screen */
 .app{height:100vh;height:100dvh;display:grid;gap:10px;padding:10px;
   grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;
-  grid-template-areas:"top" "cam" "board" "fix"}
+  grid-template-areas:"top" "cam" "board" "drills"}
 .top{grid-area:top;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .top h1{margin-right:auto}
 .cam{grid-area:cam;position:relative;background:#000;border-radius:18px;overflow:hidden;touch-action:none}
 .cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%}
-.cam video{object-fit:contain}
-.cam.mirror video{transform:scaleX(-1)}
-.hint{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(6,14,40,.82);border-radius:12px;padding:8px 12px;font-weight:600;text-align:center;font-size:15px;pointer-events:none}
-.board{grid-area:board;background:var(--board);border-radius:18px;padding:8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;text-align:center;border:5px solid #26335c}
-.board small{display:block;color:#93a0cc;font-size:13px;font-weight:600}
-.led{color:var(--led);font-size:clamp(30px,6vh,60px);line-height:1;text-shadow:0 0 12px rgba(255,210,63,.55)}
-.led.red{color:#ff5a4a}
-.msg{grid-column:1/-1;min-height:22px;font-weight:800;font-size:18px;color:#fff}
-.fix{grid-area:fix;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,210,63,.55),transparent 70%);opacity:0;pointer-events:none;transition:opacity .4s}
-.flash.on{opacity:1;transition:none}
+.cam video{object-fit:contain;transform:scaleX(-1)}
+.cam.back video{transform:none}
+.hint{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(6,14,40,.85);border-radius:12px;padding:8px 12px;font-weight:700;text-align:center;font-size:16px;pointer-events:none}
 .err{position:absolute;left:10px;right:10px;top:10px;background:#ff5a4a;color:#fff;border-radius:12px;padding:10px 12px;font-weight:700}
+.count{position:absolute;inset:0;display:grid;place-items:center;font-family:Bungee,sans-serif;font-size:min(30vw,30vh);color:var(--led);text-shadow:0 0 30px rgba(0,0,0,.7);pointer-events:none}
 
-/* sideways tablet: camera left, scoreboard and buttons right */
+.board{grid-area:board;background:var(--board);border-radius:18px;border:5px solid #26335c;padding:8px 12px;display:grid;grid-template-columns:minmax(0,1.6fr) repeat(2,minmax(0,1fr));gap:8px;align-items:center;text-align:center}
+.board small{display:block;color:#93a0cc;font-size:13px;font-weight:600}
+.call{font-size:clamp(24px,4.4vh,40px);line-height:1.05;color:#fff;text-align:start}
+.call.R{color:var(--R)}.call.L{color:var(--L)}
+.sub{color:#93a0cc;font-size:14px;font-weight:600;text-align:start;min-height:20px}
+.led{color:var(--led);font-size:clamp(30px,6vh,58px);line-height:1;text-shadow:0 0 12px rgba(255,210,63,.5)}
+.led.red{color:#ff5a4a}
+.prog{grid-column:1/-1;height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--led)}
+
+.drills{grid-area:drills;display:flex;gap:8px;align-items:stretch}
+.chips{display:flex;gap:8px;overflow-x:auto;flex:1;padding-bottom:2px;scrollbar-width:none}
+.chip{flex:none;background:rgba(255,255,255,.16);color:#fff;text-align:start;padding:6px 12px;line-height:1.2}
+.chip b{display:block;font-size:15px}.chip span{font-size:12px;font-weight:600;opacity:.85}
+.chip[aria-pressed=true]{background:#fff;color:var(--ink)}
+#go{min-width:96px;font-size:18px}
+
 @media (orientation:landscape) and (min-width:640px){
-  .app{grid-template-columns:minmax(0,1fr) clamp(230px,28vw,320px);grid-template-rows:auto minmax(0,1fr) auto;
-    grid-template-areas:"cam top" "cam board" "cam fix"}
-  .top{flex-direction:column;align-items:stretch}
-  .top h1{margin:0 0 4px}
-  .board{grid-template-columns:minmax(0,1fr);align-content:center}
-  .led{font-size:clamp(34px,9vh,72px)}
-  .fix{grid-template-columns:minmax(0,1fr)}
+  .app{grid-template-columns:minmax(0,1fr) clamp(260px,30vw,340px);grid-template-rows:auto auto minmax(0,1fr);
+    grid-template-areas:"cam top" "cam board" "cam drills"}
+  .top{flex-direction:row;flex-wrap:wrap}
+  .top h1{width:100%;margin:0 0 2px}
+  .board{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .board .callbox{grid-column:1/-1}
+  .drills{flex-direction:column;min-height:0}
+  .chips{flex-direction:column;overflow-y:auto;overflow-x:hidden}
+  .chip{flex:none}
 }
 
-/* settings sheet slides up over the bottom, camera stays visible */
-.sheet{position:fixed;left:0;right:0;bottom:0;max-height:55vh;overflow:auto;background:var(--panel);color:var(--ink);border-radius:20px 20px 0 0;padding:16px 18px 22px;box-shadow:0 -10px 30px rgba(0,0,0,.35);z-index:5}
-.sheet[hidden]{display:none}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:60vh;overflow:auto;background:var(--panel);color:var(--ink);border-radius:20px 20px 0 0;padding:16px 18px 22px;box-shadow:0 -10px 30px rgba(0,0,0,.35);z-index:5}
+[hidden]{display:none!important}
 .sheet .head{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .sheet button.close{background:var(--line);color:var(--ink)}
 .sheet label{display:block;font-weight:700;margin-top:10px}
-input[type=range]{width:100%;height:36px;accent-color:var(--ball)}
+input[type=range]{width:100%;height:36px;accent-color:var(--R)}
 .meters{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 10px;align-items:center;font-size:15px}
 .bar{height:14px;background:var(--line);border-radius:99px;overflow:hidden;position:relative}
-.bar i{display:block;height:100%;width:0;background:var(--ball)}
+.bar i{display:block;height:100%;width:0}
+#mR{background:var(--R)}#mL{background:var(--L)}
 .bar b{position:absolute;left:50%;top:-3px;bottom:-3px;width:3px;background:var(--ink)}
 ol{padding-left:20px;margin:6px 0}
-@media (prefers-reduced-motion:reduce){.flash{transition:none}}
+.modal{position:fixed;inset:0;background:rgba(6,14,40,.8);display:grid;place-items:center;z-index:6;padding:16px}
+.card{background:var(--panel);color:var(--ink);border-radius:22px;padding:22px;max-width:420px;width:100%;text-align:center}
+.card .big{font-family:Bungee,sans-serif;font-size:clamp(48px,12vw,88px);line-height:1;color:var(--R)}
+.card .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.card .row button{background:var(--line);color:var(--ink)}
+.card .row button:first-child{background:var(--R);color:#fff}
+.split{display:flex;justify-content:center;gap:18px;font-weight:800;margin-top:6px}
+.split .r{color:var(--R)}.split .l{color:#0e93b0}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="top">
-    <h1>Hoops Cam</h1>
+    <h1>Dribble Drills</h1>
     <button class="go" id="start">Turn on camera</button>
-    <button class="ghost" id="flip" hidden>Use back camera</button>
-    <button class="ghost" id="game" disabled>60-second game</button>
-    <button class="ghost" id="reset">Reset</button>
+    <button class="ghost" id="zonesBtn" disabled>Draw zones</button>
     <button class="ghost" id="setBtn">Settings</button>
   </div>
 
   <div class="cam" id="cam">
     <video id="v" playsinline muted></video>
     <canvas id="ov"></canvas>
-    <div class="flash" id="flash"></div>
-    <div class="hint" id="hint">Tap Turn on camera, then drag a box around the rim and net.</div>
+    <div class="count" id="cd" hidden></div>
+    <div class="hint" id="hint">Turn on the camera, then draw a box for each hand.</div>
     <div id="err" class="err" hidden></div>
   </div>
 
   <div class="board">
-    <div><small>Baskets</small><div class="led" id="makes">0</div></div>
+    <div class="callbox"><div class="call" id="call">Pick a drill</div><div class="sub" id="sub">Then press Start</div></div>
     <div><small>Time</small><div class="led" id="time">--</div></div>
-    <div><small>Best</small><div class="led" id="best">0</div></div>
+    <div><small>Dribbles</small><div class="led" id="cnt">0</div></div>
+    <div class="prog"><i id="prog"></i></div>
   </div>
 
-  <div class="fix">
-    <button id="plus">Missed one: +1</button>
-    <button id="minus">Not a basket: &#8722;1</button>
+  <div class="drills">
+    <div class="chips" id="chips"></div>
+    <button class="go" id="go" disabled>Start</button>
   </div>
 </div>
 
@@ -101,145 +117,190 @@ ol{padding-left:20px;margin:6px 0}
   <label for="sens">Sensitivity</label>
   <input type="range" id="sens" min="1" max="10" value="5">
   <div class="meters">
-    <span>Rim</span><div class="bar"><i id="mA"></i><b></b></div>
-    <span>Net</span><div class="bar"><i id="mB"></i><b></b></div>
+    <span>Right</span><div class="bar"><i id="mR"></i><b></b></div>
+    <span>Left</span><div class="bar"><i id="mL"></i><b></b></div>
   </div>
-  <p style="margin:8px 0 0;color:var(--soft)">A bar passing the black line means the camera saw movement there. A basket counts when Rim fires and then Net fires right after.</p>
+  <p style="margin:8px 0 0;color:var(--soft)">Each bounce should push a bar past the black line once. Missing bounces: slide up. Counting extra: slide down.</p>
+  <label><input type="checkbox" id="voice" checked> Coach voice</label>
+  <label><input type="checkbox" id="backcam"> Use back camera instead</label>
   <strong style="display:block;margin-top:12px">Setup tips</strong>
   <ol>
-    <li>Prop the tablet 6 to 10 feet from the hoop with the camera you're using pointed at it. Upright or sideways both work. Use the front camera so he can see the score, or the back camera if the front one is blurry.</li>
-    <li>Drag a box from just above the rim to the bottom of the net. Yellow watches the rim, orange watches the net.</li>
-    <li>Keep people and pets out of the box between shots. A plain wall behind the hoop helps.</li>
-    <li>If it misses baskets, slide sensitivity up. If it counts misses, slide it down.</li>
+    <li>Prop the tablet 6 to 10 feet away with the screen facing him, so the front camera sees him from head to floor.</li>
+    <li>Tap Draw zones. Drag the right-hand box first, then the left. The picture is mirrored, so his right hand shows on the right side of the screen.</li>
+    <li>Draw each box low, from the floor to about knee height, where the ball bounces. Keep the two boxes apart.</li>
+    <li>Dribble a few times and watch for the R or L flash. Adjust sensitivity until each bounce flashes once.</li>
   </ol>
 </div>
+
+<div class="modal" id="res" hidden><div class="card" id="resCard"></div></div>
 
 <script>
 {
 const $=s=>document.querySelector(s);
 const v=$('#v'),ov=$('#ov'),cam=$('#cam'),octx=ov.getContext('2d');
-let W=160,H=120;const work=document.createElement('canvas');
-const wctx=work.getContext('2d',{willReadFrequently:true});
-let st={};try{st=JSON.parse(localStorage.getItem('hoopscam')||'{}')||{}}catch(e){}
-const save=()=>{try{localStorage.setItem('hoopscam',JSON.stringify(st))}catch(e){}};
-let box=null,makes=0,best=st.best||0,prev=null,running=false,lastA=-1e9,cool=0,game=null,orient='';
-$('#best').textContent=best;$('#sens').value=st.sens||5;
+let W=160,H=120;const work=document.createElement('canvas');const wctx=work.getContext('2d',{willReadFrequently:true});
+let st={};try{st=JSON.parse(localStorage.getItem('dribble')||'{}')||{}}catch(e){}
+const save=()=>{try{localStorage.setItem('dribble',JSON.stringify(st))}catch(e){}};
+st.best=st.best||{};
+$('#sens').value=st.sens||5;$('#voice').checked=st.voice!==false;$('#backcam').checked=!!st.back;
 
-/* sound */
+/* ---------- drills: R = right zone, L = left zone, X = crossover (alternate each bounce), REST ---------- */
+const DRILLS=[
+  {id:'right',name:'Right hand',tag:'30s',steps:[['R',30]]},
+  {id:'left',name:'Left hand',tag:'30s',steps:[['L',30]]},
+  {id:'switch',name:'Switch hands',tag:'R-L-R-L',steps:[['R',15],['L',15],['R',15],['L',15]]},
+  {id:'cross',name:'Crossover',tag:'30s',steps:[['X',30]]},
+  {id:'speed',name:'Speed burst',tag:'10s each',steps:[['R',10],['L',10],['X',10]]},
+  {id:'weak',name:'Weak hand',tag:'45s left',steps:[['L',45]]},
+  {id:'workout',name:'Full workout',tag:'about 4 min',steps:[['R',30],['REST',10],['L',30],['REST',10],['R',15],['L',15],['R',15],['L',15],['REST',10],['X',30],['REST',10],['R',10],['L',10],['X',10]]}
+];
+const NAME={R:'Right hand',L:'Left hand',X:'Crossover',REST:'Rest'};
+let pick=st.pick||'right';
+function chips(){$('#chips').innerHTML=DRILLS.map(d=>`<button class="chip" data-id="${d.id}" aria-pressed="${d.id===pick}"><b>${d.name}</b><span>${d.tag}${st.best[d.id]?' &middot; best '+st.best[d.id]:''}</span></button>`).join('')}
+$('#chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b||run)return;pick=b.dataset.id;st.pick=pick;save();chips();idle()});
+chips();
+
+/* ---------- sound + voice ---------- */
 let ac=null;
 function actx(){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}return ac}
-function tone(f,d,type,vol,t0){const a=actx();if(!a)return;const t=a.currentTime+(t0||0),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;g.gain.setValueAtTime(vol||.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
-function noise(d,vol,f){const a=actx();if(!a)return;const b=a.createBuffer(1,Math.floor(a.sampleRate*d),a.sampleRate),c=b.getChannelData(0);for(let i=0;i<c.length;i++)c[i]=(Math.random()*2-1)*(1-i/c.length);const s=a.createBufferSource(),fl=a.createBiquadFilter(),g=a.createGain();s.buffer=b;fl.type='bandpass';fl.frequency.value=f;g.gain.value=vol;s.connect(fl);fl.connect(g);g.connect(a.destination);s.start()}
-const swish=()=>{noise(.3,.6,4200);tone(1320,.08,'sine',.08)};
-const buzz=()=>{tone(98,1,'sawtooth',.22);tone(104,1,'sawtooth',.18)};
-function say(t){try{const u=new SpeechSynthesisUtterance(t);u.rate=1.05;u.pitch=1.15;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function tone(f,d,type,vol,t0){const a=actx();if(!a)return;const t=a.currentTime+(t0||0),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;g.gain.setValueAtTime(vol||.1,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.05)}
+const tick=z=>tone(z==='L'?520:700,.05,'sine',.12);
+const buzz=()=>{tone(98,.9,'sawtooth',.2);tone(104,.9,'sawtooth',.16)};
+const cheer=()=>[523,659,784,1047].forEach((f,i)=>tone(f,.18,'square',.08,i*.11));
+function say(t){if(!$('#voice').checked)return;try{const u=new SpeechSynthesisUtterance(t);u.rate=1.05;u.pitch=1.1;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 
-/* keep the screen awake while the camera runs */
-let lock=null;
+/* ---------- camera ---------- */
+let running=false,facing='user',lock=null;
 async function wake(){try{if(navigator.wakeLock)lock=await navigator.wakeLock.request('screen')}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(running&&document.visibilityState==='visible')wake()});
-
-/* camera */
-/* front camera ('user') lets him see the screen while shooting; it is shown mirrored like a selfie */
-let facing=st.facing||'user';
-function camLabel(){$('#flip').textContent=facing==='user'?'Use back camera':'Use front camera'}
+function showErr(t){const e=$('#err');e.textContent=t;e.hidden=false}
 async function openCam(){
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){showErr('This browser can\'t use the camera here. Open the https:// link in Safari or Chrome.');return false}
   if(v.srcObject){v.srcObject.getTracks().forEach(t=>t.stop());v.srcObject=null}
+  facing=$('#backcam').checked?'environment':'user';
   try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:640},height:{ideal:480}},audio:false});
     v.srcObject=s;await v.play();
     const set=s.getVideoTracks()[0].getSettings?s.getVideoTracks()[0].getSettings():{};
-    if(set.facingMode)facing=set.facingMode==='user'?'user':'environment';
-    cam.classList.toggle('mirror',facing==='user');orient='';prev=null;camLabel();return true}
+    if(set.facingMode)facing=set.facingMode==='environment'?'environment':'user';
+    cam.classList.toggle('back',facing!=='user');orient='';prev=null;return true}
   catch(e){showErr('The camera was blocked. Allow camera access for this site in the tablet\'s settings, then try again.');return false}}
-$('#start').addEventListener('click',async()=>{actx();$('#err').hidden=true;
-  if(!(await openCam()))return;
-  running=true;wake();$('#start').hidden=true;$('#flip').hidden=false;$('#game').disabled=false;
-  hint();requestAnimationFrame(loop)});
-$('#flip').addEventListener('click',async()=>{$('#err').hidden=true;facing=facing==='user'?'environment':'user';st.facing=facing;save();await openCam()});
-function showErr(t){const e=$('#err');e.textContent=t;e.hidden=false}
+$('#start').addEventListener('click',async()=>{actx();$('#err').hidden=true;if(!(await openCam()))return;
+  running=true;wake();$('#start').hidden=true;$('#zonesBtn').disabled=false;requestAnimationFrame(loop);idle()});
+$('#backcam').addEventListener('change',async()=>{st.back=$('#backcam').checked;save();if(running)await openCam()});
 
-/* upright and sideways each remember their own box */
-function bkey(){return 'box_'+facing+'_'+orient}
+/* ---------- zones, saved per camera and per upright/sideways ---------- */
+let zones={R:null,L:null},orient='',drawing=null,drag=null,dragBox=null;
+const zkey=()=>'z_'+facing+'_'+orient;
 function curOrient(){return v.videoWidth>=v.videoHeight?'wide':'tall'}
-function hint(){$('#hint').textContent=box?'Ready! Shoot away. Drag again to move the box.':'Drag a box from just above the rim to the bottom of the net.';$('#hint').hidden=false}
-
-/* where the video actually shows inside the camera window (object-fit:contain) */
-function vrect(){const vw=v.videoWidth||4,vh=v.videoHeight||3,cw=cam.clientWidth,ch=cam.clientHeight,s=Math.min(cw/vw,ch/vh),dw=vw*s,dh=vh*s;
-  return{x:(cw-dw)/2,y:(ch-dh)/2,w:dw,h:dh}}
-
-let drag=null;
-function pt(e){const r=cam.getBoundingClientRect(),q=vrect();
-  return{x:Math.min(1,Math.max(0,(e.clientX-r.left-q.x)/q.w)),y:Math.min(1,Math.max(0,(e.clientY-r.top-q.y)/q.h))}}
-cam.addEventListener('pointerdown',e=>{if(!running)return;drag=pt(e);cam.setPointerCapture(e.pointerId);$('#hint').hidden=true});
-cam.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e);box={x:Math.min(drag.x,p.x),y:Math.min(drag.y,p.y),w:Math.abs(p.x-drag.x),h:Math.abs(p.y-drag.y)}});
+function vrect(){const vw=v.videoWidth||4,vh=v.videoHeight||3,cw=cam.clientWidth,ch=cam.clientHeight,s=Math.min(cw/vw,ch/vh),dw=vw*s,dh=vh*s;return{x:(cw-dw)/2,y:(ch-dh)/2,w:dw,h:dh}}
+function pt(e){const r=cam.getBoundingClientRect(),q=vrect();return{x:Math.min(1,Math.max(0,(e.clientX-r.left-q.x)/q.w)),y:Math.min(1,Math.max(0,(e.clientY-r.top-q.y)/q.h))}}
+function hint(t){const h=$('#hint');if(t){h.textContent=t;h.hidden=false}else h.hidden=true}
+function startDraw(){if(run)return;drawing='R';hint('Drag a box where he dribbles with his RIGHT hand (floor to knee).')}
+$('#zonesBtn').addEventListener('click',startDraw);
+cam.addEventListener('pointerdown',e=>{if(!drawing)return;drag=pt(e);dragBox=null;cam.setPointerCapture(e.pointerId)});
+cam.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e);dragBox={x:Math.min(drag.x,p.x),y:Math.min(drag.y,p.y),w:Math.abs(p.x-drag.x),h:Math.abs(p.y-drag.y)}});
 cam.addEventListener('pointerup',()=>{if(!drag)return;drag=null;
-  if(box&&box.w>.03&&box.h>.04){st[bkey()]=box;save();prev=null}else box=st[bkey()]||null;hint();setTimeout(()=>{if(box)$('#hint').hidden=true},2500)});
+  if(!dragBox||dragBox.w<.04||dragBox.h<.04){dragBox=null;return}
+  zones[drawing]=dragBox;dragBox=null;
+  if(drawing==='R'){drawing='L';hint('Now drag a box where he dribbles with his LEFT hand.')}
+  else{drawing=null;st[zkey()]=zones;save();prev=null;idle()}});
 
-function zones(){if(!box)return null;
-  return{A:{x:box.x,y:box.y,w:box.w,h:box.h*.32},B:{x:box.x+box.w*.18,y:box.y+box.h*.45,w:box.w*.64,h:box.h*.55}}}
-
-function motion(diff,z){const x0=Math.floor(z.x*W),y0=Math.floor(z.y*H),x1=Math.min(W,Math.ceil((z.x+z.w)*W)),y1=Math.min(H,Math.ceil((z.y+z.h)*H));let n=0,c=0;
+/* ---------- motion and bounce counting ---------- */
+let prev=null;
+const zs={R:{on:false,last:0},L:{on:false,last:0}};
+function motion(diff,z){const zz=facing==='user'?{x:1-z.x-z.w,y:z.y,w:z.w,h:z.h}:z;
+  const x0=Math.floor(zz.x*W),y0=Math.floor(zz.y*H),x1=Math.min(W,Math.ceil((zz.x+zz.w)*W)),y1=Math.min(H,Math.ceil((zz.y+zz.h)*H));let n=0,c=0;
   for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){n++;if(diff[y*W+x])c++}return n?c/n:0}
-
-function loop(){if(!running)return;requestAnimationFrame(loop);
-  if(!v.videoWidth)return;
-  const o=curOrient();
-  if(o!==orient){orient=o;box=st[bkey()]||null;prev=null;hint()}
-  const nh=Math.round(160*v.videoHeight/v.videoWidth);
-  if(W!==160||H!==nh){W=160;H=nh;prev=null}
+const pops={R:0,L:0};
+function loop(){if(!running)return;requestAnimationFrame(loop);if(!v.videoWidth)return;
+  const o=curOrient();if(o!==orient){orient=o;zones=st[zkey()]||{R:null,L:null};prev=null;idle()}
+  const nh=Math.round(160*v.videoHeight/v.videoWidth);if(H!==nh){H=nh;prev=null}
   if(work.width!==W||work.height!==H){work.width=W;work.height=H}
   wctx.drawImage(v,0,0,W,H);
   const d=wctx.getImageData(0,0,W,H).data,g=new Uint8Array(W*H);
   for(let i=0,j=0;i<g.length;i++,j+=4)g[i]=(d[j]*77+d[j+1]*150+d[j+2]*29)>>8;
-  const sens=+$('#sens').value,thrPix=40-sens*2.5,thrA=.16-sens*.012,thrB=.13-sens*.01;
+  const sens=+$('#sens').value,thrPix=38-sens*2.4,thr=.15-sens*.012;
   const diff=new Uint8Array(W*H);
   if(prev&&prev.length===g.length)for(let i=0;i<g.length;i++)diff[i]=Math.abs(g[i]-prev[i])>thrPix?1:0;
-  prev=g;
-  draw();
-  const z=zones();if(!z)return;
-  const fx=q=>facing==='user'?{x:1-q.x-q.w,y:q.y,w:q.w,h:q.h}:q;
-  const a=motion(diff,fx(z.A)),b=motion(diff,fx(z.B)),now=performance.now();
-  $('#mA').style.width=Math.min(100,a/thrA*50)+'%';$('#mB').style.width=Math.min(100,b/thrB*50)+'%';
-  if(drag||now<cool)return;
-  if(a>thrA)lastA=now;
-  if(b>thrB&&now-lastA<750&&now-lastA>0){score(1);cool=now+1600;lastA=-1e9}
-}
+  const fresh=!prev;prev=g;const now=performance.now();
+  for(const k of ['R','L']){const z=zones[k];if(!z||fresh)continue;
+    const m=motion(diff,z),s=zs[k];
+    $('#m'+k).style.width=Math.min(100,m/thr*50)+'%';
+    if(!s.on&&m>thr&&now-s.last>190){s.on=true;s.last=now;bounce(k)}
+    else if(s.on&&m<thr*.45)s.on=false}
+  if(run)stepTick();
+  draw(now)}
+function bounce(k){pops[k]=performance.now();if(!run||!run.live)return;onBounce(k)}
 
-function draw(){const dpr=devicePixelRatio||1,cw=cam.clientWidth,ch=cam.clientHeight;
+function draw(now){const dpr=devicePixelRatio||1,cw=cam.clientWidth,ch=cam.clientHeight;
   if(ov.width!==Math.round(cw*dpr)||ov.height!==Math.round(ch*dpr)){ov.width=Math.round(cw*dpr);ov.height=Math.round(ch*dpr)}
-  octx.setTransform(dpr,0,0,dpr,0,0);octx.clearRect(0,0,cw,ch);
-  const z=zones();if(!z)return;const q=vrect();
-  const r=(b,col,fill)=>{const x=q.x+b.x*q.w,y=q.y+b.y*q.h,w=b.w*q.w,h=b.h*q.h;octx.fillStyle=fill;octx.strokeStyle=col;octx.lineWidth=3;octx.fillRect(x,y,w,h);octx.strokeRect(x,y,w,h)};
-  octx.setLineDash([8,6]);r(box,'#fff','rgba(0,0,0,0)');octx.setLineDash([]);
-  r(z.A,'#ffd23f','rgba(255,210,63,.15)');r(z.B,'#ff7a1a','rgba(255,122,26,.18)')}
+  octx.setTransform(dpr,0,0,dpr,0,0);octx.clearRect(0,0,cw,ch);const q=vrect();
+  const target=run&&run.live?run.want:null;
+  const box=(b,col,label,state)=>{const x=q.x+b.x*q.w,y=q.y+b.y*q.h,w=b.w*q.w,h=b.h*q.h;
+    octx.globalAlpha=state==='dim'?.35:1;octx.fillStyle=col+'2e';octx.fillRect(x,y,w,h);
+    octx.lineWidth=state==='hot'?7:3;octx.strokeStyle=col;octx.strokeRect(x,y,w,h);
+    octx.fillStyle=col;octx.font='700 '+Math.max(16,Math.min(30,h*.3))+'px Bungee,sans-serif';octx.textBaseline='top';octx.fillText(label,x+6,y+6);octx.globalAlpha=1};
+  for(const k of ['R','L']){const z=zones[k];if(!z)continue;
+    const col=k==='R'?'#ff7a1a':'#22c3e6',flash=now-pops[k]<180;
+    const state=target?(target===k?'hot':'dim'):(flash?'hot':'');
+    box(z,col,k==='R'?'RIGHT':'LEFT',state);
+    if(flash){const x=q.x+(z.x+z.w/2)*q.w,y=q.y+(z.y+z.h/2)*q.h;octx.fillStyle='#fff';octx.font='700 32px Bungee,sans-serif';octx.textAlign='center';octx.textBaseline='middle';octx.fillText(k,x,y);octx.textAlign='start'}}
+  if(dragBox)box(dragBox,drawing==='R'?'#ff7a1a':'#22c3e6',drawing==='R'?'RIGHT':'LEFT','hot')}
 
-const HYPE=['Swish!','Nothing but net!','Bang!','Count it!','Splash!','Bucket!'];
-let streak=0,lastMake=0;
-function flashMsg(m){const h=$('#hint');h.textContent=m;h.hidden=false;clearTimeout(flashMsg.t);flashMsg.t=setTimeout(()=>{h.hidden=true},1400)}
-function score(n){if(game&&!game.on)return;makes=Math.max(0,makes+n);$('#makes').textContent=makes;
-  if(n>0){swish();const f=$('#flash');f.classList.add('on');setTimeout(()=>f.classList.remove('on'),60);
-    const now=performance.now();streak=now-lastMake<8000?streak+1:1;lastMake=now;
-    let m=HYPE[Math.floor(Math.random()*HYPE.length)];if(streak===3){m='Heating up!';say(m)}else if(streak===5){m='On fire!';say("He's on fire!")}
-    flashMsg(m)}
-  else flashMsg('Fixed it.');
-  if(!game&&makes>best){best=makes;st.best=best;save();$('#best').textContent=best}}
+/* ---------- running a drill ---------- */
+let run=null,cdT=null;
+const drill=()=>DRILLS.find(d=>d.id===pick);
+function idle(){
+  const ok=zones.R&&zones.L;$('#go').disabled=!running||!ok||!!run;
+  if(run)return;
+  const d=drill(),tot=d.steps.reduce((a,s)=>a+s[1],0);
+  $('#call').className='call';$('#call').textContent=d.name;
+  $('#sub').textContent=d.steps.filter(s=>s[0]!=='REST').map(s=>NAME[s[0]]+' '+s[1]+'s').join(' \u2192 ');
+  $('#time').textContent=tot;$('#time').classList.remove('red');$('#cnt').textContent=0;$('#prog').style.width='0';
+  if(!running)hint('Turn on the camera, then draw a box for each hand.');
+  else if(!drawing)hint(ok?'Zones set. Dribble to test: each bounce flashes R or L.':'Tap Draw zones to set the right and left dribble boxes.');
+  if(ok&&!drawing&&running)setTimeout(()=>{if(!run&&!drawing)hint()},4000)}
 
-$('#plus').addEventListener('click',()=>score(1));
-$('#minus').addEventListener('click',()=>score(-1));
-$('#reset').addEventListener('click',()=>{makes=0;streak=0;$('#makes').textContent=0});
+$('#go').addEventListener('click',()=>{if(run){stop(true);return}actx();begin()});
+function begin(){const d=drill();
+  run={d,i:-1,total:0,byZone:{R:0,L:0},stepCount:0,live:false,want:null,end:0,t0:0,dur:d.steps.reduce((a,s)=>a+s[1],0)*1000};
+  $('#go').textContent='Stop';$('#go').disabled=false;$('#zonesBtn').disabled=true;hint();
+  let n=3;const c=$('#cd');c.hidden=false;c.textContent=n;tone(880,.12);say(d.name+'. Ready?');
+  cdT=setInterval(()=>{n--;if(n>0){c.textContent=n;tone(880,.12)}else{clearInterval(cdT);c.textContent='GO';tone(1320,.25);setTimeout(()=>{c.hidden=true},400);run.t0=performance.now();nextStep()}},900)}
+function nextStep(){run.i++;
+  if(run.i>=run.d.steps.length){finish();return}
+  const [z,s]=run.d.steps[run.i];run.zone=z;run.stepCount=0;run.end=performance.now()+s*1000;
+  run.live=z!=='REST';run.want=z==='X'?'R':(z==='REST'?null:z);
+  const call=$('#call');call.className='call '+(run.want||'');call.textContent=NAME[z];
+  const nx=run.d.steps[run.i+1];$('#sub').textContent=nx?'Next: '+NAME[nx[0]]+' '+nx[1]+'s':'Last one!';
+  if(run.i>0)tone(1100,.15,'square',.1);
+  say(z==='REST'?'Rest':(run.i>0&&z!=='X'?'Switch! ':'')+NAME[z]+(z==='X'?'. Right, left, right, left':''))}
+function stepTick(){if(!run||run.t0===0)return;const now=performance.now(),left=Math.max(0,(run.end-now)/1000);
+  $('#time').textContent=Math.ceil(left);$('#time').classList.toggle('red',left<=5&&run.live);
+  $('#prog').style.width=Math.min(100,(now-run.t0)/run.dur*100)+'%';
+  if(left<=0)nextStep()}
+function onBounce(k){
+  if(run.zone==='X'){if(k!==run.want){$('#sub').textContent='Cross to the '+(run.want==='R'?'right':'left')+'!';return}
+    run.want=k==='R'?'L':'R';$('#call').className='call '+run.want;$('#call').textContent=run.want==='R'?'Cross right':'Cross left'}
+  else if(k!==run.zone)return;
+  run.total++;run.stepCount++;run.byZone[k]++;tick(k);$('#cnt').textContent=run.total}
+function stop(user){clearInterval(cdT);$('#cd').hidden=true;run=null;$('#go').textContent='Start';$('#zonesBtn').disabled=false;try{speechSynthesis.cancel()}catch(e){}idle()}
+function finish(){const r=run;buzz();run.live=false;
+  const prevBest=st.best[r.d.id]||0,rec=r.total>prevBest;if(rec){st.best[r.d.id]=r.total;save()}
+  const secs=r.d.steps.filter(s=>s[0]!=='REST').reduce((a,s)=>a+s[1],0),pace=(r.total/secs*60).toFixed(0);
+  setTimeout(()=>{if(rec&&r.total>0){cheer();say('New record! '+r.total+' dribbles')}else say(r.total+' dribbles')},800);
+  $('#resCard').innerHTML=`<h2 style="margin:0 0 6px">${r.d.name}</h2><div class="big">${r.total}</div><div>dribbles &middot; ${pace} per minute</div>
+    <div class="split"><span class="r">Right ${r.byZone.R}</span><span class="l">Left ${r.byZone.L}</span></div>
+    <p style="margin:10px 0 0">${rec&&r.total>0?'<b>New record!</b>':'Best: '+prevBest}</p>
+    <div class="row"><button id="again">Go again</button><button id="close">Pick another</button></div>`;
+  $('#res').hidden=false;stop();chips();
+  $('#again').onclick=()=>{$('#res').hidden=true;begin()};$('#close').onclick=()=>{$('#res').hidden=true}}
+
 $('#sens').addEventListener('input',()=>{st.sens=+$('#sens').value;save()});
+$('#voice').addEventListener('change',()=>{st.voice=$('#voice').checked;save()});
 $('#setBtn').addEventListener('click',()=>{$('#sheet').hidden=false});
 $('#closeSet').addEventListener('click',()=>{$('#sheet').hidden=true});
-
-$('#game').addEventListener('click',()=>{if(game&&game.on)return;makes=0;$('#makes').textContent=0;let n=3;flashMsg('3');tone(880,.13);
-  const cd=setInterval(()=>{n--;if(n>0){flashMsg(String(n));tone(880,.13)}else{clearInterval(cd);tone(1320,.3);flashMsg('GO!');
-    game={on:true,end:Date.now()+60000};const t=setInterval(()=>{const s=Math.max(0,Math.ceil((game.end-Date.now())/1000));$('#time').textContent=s;$('#time').classList.toggle('red',s<=10);
-      if(s===10&&!game.ten){game.ten=true;say('Ten seconds!')}
-      if(s<=0){clearInterval(t);game.on=false;buzz();
-        if(makes>best){best=makes;st.best=best;save();$('#best').textContent=best;flashMsg('New record: '+makes+'!');say('New record! '+makes+' baskets!')}
-        else{flashMsg('Time! '+makes+' baskets.');say(makes+' baskets!')}
-        setTimeout(()=>{game=null;$('#time').textContent='--';$('#time').classList.remove('red')},3000)}},200)}},800)});
+idle();
 }
 </script>
 </body>
